@@ -30,4 +30,21 @@ public class GameState
 
         CurrentPlayer = PlayerEnum.Black; // The first player to play, according to the rules, is the one using the black discs
     }
+
+    private bool IsInsideBoard(int r, int c)
+    {
+        return r >= 0 && r < Rows && c >= 0 && c < Cols;
+    }
+
+    private List<PlayerPosition> TakenDiscsInDir(PlayerPosition pos, PlayerEnum player, int rDelta, int cDelta)
+    {
+        List<PlayerPosition> takenDiscs = new List<PlayerPosition>();
+        int r = pos.Row + rDelta;
+        int c = pos.Col + cDelta;
+
+        while (IsInsideBoard(r,c) && Board[r,c] != PlayerEnum.None)
+        {
+            
+        }
+    }
 }
