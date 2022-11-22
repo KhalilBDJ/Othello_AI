@@ -44,7 +44,37 @@ public class GameState
 
         while (IsInsideBoard(r,c) && Board[r,c] != PlayerEnum.None)
         {
-            
+            if (Board[r, c] == player.Opponent())
+            {
+                takenDiscs.Add(new PlayerPosition(r,c));
+                r += rDelta;
+                c += cDelta;
+            }
+            else
+            {
+                return takenDiscs;
+            }
         }
+        return new List<PlayerPosition>();
+    }
+
+    private List<PlayerPosition> Taken(PlayerPosition pos, PlayerEnum player)
+    {
+        List<PlayerPosition> taken = new List<PlayerPosition>();
+
+        for (int rDelta = -1; rDelta<=1; rDelta++)
+        {
+            for (int cDelta = -1; cDelta <= 1; cDelta++)
+            {
+                if (rDelta == 0 && cDelta == 0)
+                {
+                    continue;
+                }
+                
+                taken.AddRange(TakenDiscsInDir(pos, player, rDelta, cDelta));
+            }
+        }
+
+        return taken;
     }
 }
