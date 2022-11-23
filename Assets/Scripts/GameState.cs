@@ -37,9 +37,10 @@ public class GameState
     }
 
     private List<PlayerPosition> TakenDiscsInDir(PlayerPosition pos, PlayerEnum player, int rDelta, int cDelta)
+    // rDelta et cDelta correspondent à des directions, par exemple r = 1 et c = 0 correspond au Sud
     {
         List<PlayerPosition> takenDiscs = new List<PlayerPosition>();
-        int r = pos.Row + rDelta;
+        int r = pos.Row + rDelta; // Pour éviter de prendre le pion actuel, on ajoute nos direction (cad on prend le premier pion adverse dans la direction choisie)
         int c = pos.Col + cDelta;
 
         while (IsInsideBoard(r,c) && Board[r,c] != PlayerEnum.None)
@@ -47,8 +48,8 @@ public class GameState
             if (Board[r, c] == player.Opponent())
             {
                 takenDiscs.Add(new PlayerPosition(r,c));
-                r += rDelta;
-                c += cDelta;
+                r += rDelta; // On continue d'une case dans la direction r
+                c += cDelta; // Pareil pour c
             }
             else
             {
@@ -60,13 +61,14 @@ public class GameState
 
     private List<PlayerPosition> Taken(PlayerPosition pos, PlayerEnum player)
     {
+        // On regarde cette fois-ci dans toutes les directions
         List<PlayerPosition> taken = new List<PlayerPosition>();
 
         for (int rDelta = -1; rDelta<=1; rDelta++)
         {
             for (int cDelta = -1; cDelta <= 1; cDelta++)
             {
-                if (rDelta == 0 && cDelta == 0)
+                if (rDelta == 0 && cDelta == 0) // 0 et 0 signifie que c'est le pion actuel
                 {
                     continue;
                 }
