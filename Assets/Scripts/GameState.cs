@@ -29,6 +29,7 @@ public class GameState
         };
 
         CurrentPlayer = PlayerEnum.Black; // Selon les règles, le premier joueur est le joueur possèdant les pions noirs
+        LegalMoves = FindLegalMoves(CurrentPlayer);
     }
 
     private bool IsInsideBoard(int r, int c)
@@ -78,5 +79,37 @@ public class GameState
         }
 
         return taken;
+    }
+
+
+    private bool IsMoveLegal(PlayerEnum player, PlayerPosition pos, out List<PlayerPosition> taken)
+    {
+        if (Board[pos.Row, pos.Col] != PlayerEnum.None)
+        {
+            taken = null;
+            return false;
+        }
+
+        taken = Taken(pos, player);
+        return taken.Count > 0;
+    }
+
+    private Dictionary<PlayerPosition, List<PlayerPosition>> FindLegalMoves(PlayerEnum player)
+    {
+        Dictionary<PlayerPosition, List<PlayerPosition>> legalMoves = new Dictionary<PlayerPosition, List<PlayerPosition>>(); // On crée un dictionnaire de mouvements légaux
+
+        for (int r = 0; r < Rows; r++)
+        {
+            for (int c = 0; c < Cols; c++)//on parcours chaque case
+            {
+                PlayerPosition position = new PlayerPosition(r, c);
+
+                if (IsMoveLegal(player, position, out List<PlayerPosition> taken)) // on regarde si dans la position actuelle il y a des mouvements légaux
+                {
+                    legalMoves[position] = taken; // On ajoute au dictionnaire la liste des pions pris à cette position
+                }
+            }
+        }
+        return legalMoves;
     }
 }
