@@ -112,4 +112,25 @@ public class GameState
         }
         return legalMoves;
     }
+
+    public bool MakeMove(PlayerPosition pos, out MoveInfo moveInfo)
+    {
+        if (!LegalMoves.ContainsKey(pos))
+        {
+            moveInfo = null;
+            return false;
+        }
+
+        PlayerEnum movePlayer = CurrentPlayer;
+        List<PlayerPosition> taken = LegalMoves[pos];
+
+        Board[pos.Row, pos.Col] = movePlayer;
+        
+        //Retourne pion
+        //Compteur de pion
+        //Tour passé
+
+        moveInfo = new MoveInfo {Player = movePlayer, Position = pos, Taken = taken};
+        return true;
+    }
 }
