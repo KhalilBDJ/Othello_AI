@@ -12,7 +12,7 @@ public class GameState
     public PlayerEnum CurrentPlayer { get; private set; } // Le joueur actuellement en train de jouer
     public bool GameOver { get; private set; } // Permettant de déterminer si le jeu est finit ou non
     public PlayerEnum Winner { get; private set; } // Quel joueur a gagné
-    public Dictionary<PlayerPosition, List<PlayerPosition>> LegalMoves { get; private set; } // Un ajout de pion et la liste des pions adverses que le pion va prednre
+    public Dictionary<PlayerPosition, List<PlayerPosition>> LegalMoves { get; private set; } // Un ajout de pion et la liste des pions adverses que le pion va prendre
 	
     public GameState()
     {
@@ -115,22 +115,22 @@ public class GameState
 
     public bool MakeMove(PlayerPosition pos, out MoveInfo moveInfo)
     {
-        if (!LegalMoves.ContainsKey(pos))
+        if (!LegalMoves.ContainsKey(pos)) // Si la position à laquelle on veut placer le pion n'est pas une position valide, alors on retourne faux
         {
             moveInfo = null;
             return false;
         }
-
+        // Sinon, on récupère le joueur actuel
         PlayerEnum movePlayer = CurrentPlayer;
-        List<PlayerPosition> taken = LegalMoves[pos];
+        List<PlayerPosition> taken = LegalMoves[pos]; // On récupère la liste des pions pris par ce mouvement
 
-        Board[pos.Row, pos.Col] = movePlayer;
+        Board[pos.Row, pos.Col] = movePlayer; // On déplace le joueur sur le plateau
         
         //Retourne pion
         //Compteur de pion
         //Tour passé
 
-        moveInfo = new MoveInfo {Player = movePlayer, Position = pos, Taken = taken};
+        moveInfo = new MoveInfo {Player = movePlayer, Position = pos, Taken = taken}; // On initialise les infos du mouvement
         return true;
     }
 }
