@@ -127,7 +127,7 @@ public class GameState
         Board[pos.Row, pos.Col] = movePlayer; // On déplace le joueur sur le plateau
         
         FlipDiscs(taken); 
-        //Compteur de pion
+        UpdateDiscCounts(movePlayer, taken.Count);
         //Tour passé
 
         moveInfo = new MoveInfo {Player = movePlayer, Position = pos, Taken = taken}; // On initialise les infos du mouvement
@@ -141,5 +141,11 @@ public class GameState
         {
             Board[position.Row, position.Col] = Board[position.Row, position.Col].Opponent();
         }
+    }
+
+    private void UpdateDiscCounts(PlayerEnum player, int taken)
+    {
+        DiscCount[player] += taken + 1; // on ajoute le nombre de pions pris plus le pion placé
+        DiscCount[player.Opponent()] -= taken; // on retire le nombre de pion pris à l'adversaire
     }
 }
