@@ -154,4 +154,18 @@ public class GameState
         CurrentPlayer = CurrentPlayer.Opponent(); 
         LegalMoves = FindLegalMoves(CurrentPlayer); // On change la liste des déplacements possibles
     }
+
+    private PlayerEnum FindWinner()
+    {
+        if (DiscCount[PlayerEnum.Black] > DiscCount[PlayerEnum.White])
+        {
+            return PlayerEnum.Black;
+        }
+        else if (DiscCount[PlayerEnum.Black] < DiscCount[PlayerEnum.White])
+        {
+            return PlayerEnum.White;
+        }
+
+        return PlayerEnum.None; // Match nul
+    }
 }
