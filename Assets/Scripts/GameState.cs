@@ -126,11 +126,20 @@ public class GameState
 
         Board[pos.Row, pos.Col] = movePlayer; // On déplace le joueur sur le plateau
         
-        //Retourne pion
+        FlipDiscs(taken); 
         //Compteur de pion
         //Tour passé
 
         moveInfo = new MoveInfo {Player = movePlayer, Position = pos, Taken = taken}; // On initialise les infos du mouvement
         return true;
+    }
+
+    private void FlipDiscs(List<PlayerPosition> positions)
+    {
+        // Transfert une liste de pion passé en paramètre au joueur adverse
+        foreach (var position in positions)
+        {
+            Board[position.Row, position.Col] = Board[position.Row, position.Col].Opponent();
+        }
     }
 }
