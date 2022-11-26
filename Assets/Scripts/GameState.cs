@@ -128,8 +128,7 @@ public class GameState
         
         FlipDiscs(taken); 
         UpdateDiscCounts(movePlayer, taken.Count);
-        //Tour passé
-
+        PassTurn();
         moveInfo = new MoveInfo {Player = movePlayer, Position = pos, Taken = taken}; // On initialise les infos du mouvement
         return true;
     }
@@ -167,5 +166,24 @@ public class GameState
         }
 
         return PlayerEnum.None; // Match nul
+    }
+
+    private void PassTurn()
+    {
+        ChangePlayer();
+
+        if (LegalMoves.Count > 0) // Si le joueur peut jouer, alors on continue de jouer
+        {
+            return;
+        }
+        
+        ChangePlayer();
+
+        if (LegalMoves.Count == 0) // Si aucun joueur ne peut jouer, alors on arrête le jeu
+        {
+            CurrentPlayer = PlayerEnum.None;
+            GameOver = true;
+            Winner = FindWinner();
+        }
     }
 }
