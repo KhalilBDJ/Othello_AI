@@ -148,4 +148,10 @@ public class GameState
         DiscCount[player] += taken + 1; // on ajoute le nombre de pions pris plus le pion placé
         DiscCount[player.Opponent()] -= taken; // on retire le nombre de pion pris à l'adversaire
     }
+
+    private void ChangePlayer()
+    {
+        CurrentPlayer = CurrentPlayer.Opponent(); 
+        LegalMoves = FindLegalMoves(CurrentPlayer); // On change la liste des déplacements possibles
+    }
 }
