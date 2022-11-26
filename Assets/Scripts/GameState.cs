@@ -186,4 +186,18 @@ public class GameState
             Winner = FindWinner();
         }
     }
+
+    private IEnumerable<PlayerPosition> OccupiedPositions()
+    {
+        for (int r = 0; r < Rows; r++)
+        {
+            for (int c = 0; c < Cols; c++)
+            {
+                if (Board[r, c] != PlayerEnum.None)
+                {
+                    yield return new PlayerPosition(r, c);
+                }
+            }
+        }
+    }
 }
