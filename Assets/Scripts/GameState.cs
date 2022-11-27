@@ -187,7 +187,7 @@ public class GameState
         }
     }
 
-    private IEnumerable<PlayerPosition> OccupiedPositions()
+    public IEnumerable<PlayerPosition> OccupiedPositions()
     {
         for (int r = 0; r < Rows; r++)
         {
