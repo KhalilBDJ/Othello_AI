@@ -12,7 +12,7 @@ public class GameState
     public PlayerEnum CurrentPlayer { get; private set; } // Le joueur actuellement en train de jouer
     public bool GameOver { get; private set; } // Permettant de déterminer si le jeu est finit ou non
     public PlayerEnum Winner { get; private set; } // Quel joueur a gagné
-    public Dictionary<PlayerPosition, List<PlayerPosition>> LegalMoves { get; private set; } // Un ajout de pion et la liste des pions adverses que le pion va prednre
+    public Dictionary<PlayerPosition, List<PlayerPosition>> LegalMoves { get; private set; } // Un ajout de pion et la liste des pions adverses que le pion va prendre
 	
     public GameState()
     {
@@ -111,5 +111,93 @@ public class GameState
             }
         }
         return legalMoves;
+    }
+
+    public bool MakeMove(PlayerPosition pos, out MoveInfo moveInfo)
+    {
+        if (!LegalMoves.ContainsKey(pos)) // Si la position à laquelle on veut placer le pion n'est pas une position valide, alors on retourne faux
+        {
+            moveInfo = null;
+            return false;
+        }
+        // Sinon, on récupère le joueur actuel
+        PlayerEnum movePlayer = CurrentPlayer;
+        List<PlayerPosition> taken = LegalMoves[pos]; // On récupère la liste des pions pris par ce mouvement
+
+        Board[pos.Row, pos.Col] = movePlayer; // On déplace le joueur sur le plateau
+        
+        FlipDiscs(taken); 
+        UpdateDiscCounts(movePlayer, taken.Count);
+        PassTurn();
+        moveInfo = new MoveInfo {Player = movePlayer, Position = pos, Taken = taken}; // On initialise les infos du mouvement
+        return true;
+    }
+
+    private void FlipDiscs(List<PlayerPosition> positions)
+    {
+        // Transfert une liste de pion passé en paramètre au joueur adverse
+        foreach (var position in positions)
+        {
+            Board[position.Row, position.Col] = Board[position.Row, position.Col].Opponent();
+        }
+    }
+
+    private void UpdateDiscCounts(PlayerEnum player, int taken)
+    {
+        DiscCount[player] += taken + 1; // on ajoute le nombre de pions pris plus le pion placé
+        DiscCount[player.Opponent()] -= taken; // on retire le nombre de pion pris à l'adversaire
+    }
+
+    private void ChangePlayer()
+    {
+        CurrentPlayer = CurrentPlayer.Opponent(); 
+        LegalMoves = FindLegalMoves(CurrentPlayer); // On change la liste des déplacements possibles
+    }
+
+    private PlayerEnum FindWinner()
+    {
+        if (DiscCount[PlayerEnum.Black] > DiscCount[PlayerEnum.White])
+        {
+            return PlayerEnum.Black;
+        }
+        else if (DiscCount[PlayerEnum.Black] < DiscCount[PlayerEnum.White])
+        {
+            return PlayerEnum.White;
+        }
+
+        return PlayerEnum.None; // Match nul
+    }
+
+    private void PassTurn()
+    {
+        ChangePlayer();
+
+        if (LegalMoves.Count > 0) // Si le joueur peut jouer, alors on continue de jouer
+        {
+            return;
+        }
+        
+        ChangePlayer();
+
+        if (LegalMoves.Count == 0) // Si aucun joueur ne peut jouer, alors on arrête le jeu
+        {
+            CurrentPlayer = PlayerEnum.None;
+            GameOver = true;
+            Winner = FindWinner();
+        }
+    }
+
+    public IEnumerable<PlayerPosition> OccupiedPositions()
+    {
+        for (int r = 0; r < Rows; r++)
+        {
+            for (int c = 0; c < Cols; c++)
+            {
+                if (Board[r, c] != PlayerEnum.None)
+                {
+                    yield return new PlayerPosition(r, c);
+                }
+            }
+        }
     }
 }
