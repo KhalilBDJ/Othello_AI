@@ -9,17 +9,20 @@ public class GameManager : MonoBehaviour
     [SerializeField] private LayerMask boardLayer;
     [SerializeField] private Disc discBlackUp;
     [SerializeField] private Disc discWhiteUp;
+    [SerializeField] private GameObject highlightPrefab;
 
     private Dictionary<PlayerEnum, Disc> discPrefabs = new Dictionary<PlayerEnum, Disc>();
     private GameState _gameState = new GameState();
     private Disc[,] _discs = new Disc[8, 8];
     private bool _canMove = true;
+    private List<GameObject> highlights = new List<GameObject>();
     void Start()
     {
         discPrefabs[PlayerEnum.Black] = discBlackUp;
         discPrefabs[PlayerEnum.White] = discWhiteUp;
         
         AddStartDiscs();
+        ShowLegalMoves();
     }
 
     // Update is called once per frame
@@ -43,6 +46,22 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void ShowLegalMoves()
+    {
+        foreach (var boardPos in _gameState.LegalMoves.Keys)
+        {
+            Vector3 scenePos = BoardToScenePos(boardPos) + Vector3.up * 0.01f;
+            GameObject highlight = Instantiate(highlightPrefab, scenePos, Quaternion.identity);
+            highlights.Add(highlight);
+        }
+    }
+
+    private void HideLegalMoves()
+    {
+        highlights.ForEach(Destroy);
+        highlights.Clear();
+    }
+
     private void OnBoardClicked(PlayerPosition boardPos)
     {
         if (!_canMove)
@@ -58,7 +77,9 @@ public class GameManager : MonoBehaviour
     private IEnumerator OnMoveMade(MoveInfo moveInfo)
     {
         _canMove = false;
+        HideLegalMoves();
         yield return ShowMove(moveInfo);
+        ShowLegalMoves();
         _canMove = true;
     }
 
