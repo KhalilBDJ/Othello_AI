@@ -14,7 +14,6 @@ public class GameManager : MonoBehaviour
     private Dictionary<PlayerEnum, Disc> discPrefabs = new Dictionary<PlayerEnum, Disc>();
     private GameState _gameState = new GameState();
     private Disc[,] _discs = new Disc[8, 8];
-    private bool _canMove = true;
     private List<GameObject> highlights = new List<GameObject>();
     void Start()
     {
@@ -37,7 +36,7 @@ public class GameManager : MonoBehaviour
         {
             Ray ray = cam.ScreenPointToRay(Input.mousePosition);
 
-            if (Physics.Raycast(ray, out RaycastHit hitInfo, 100f, boardLayer))
+            if (Physics.Raycast(ray, out RaycastHit hitInfo))
             {
                 Vector3 impact = hitInfo.point;
                 PlayerPosition boardPos = SceneToBoard(impact);
@@ -64,10 +63,6 @@ public class GameManager : MonoBehaviour
 
     private void OnBoardClicked(PlayerPosition boardPos)
     {
-        if (!_canMove)
-        {
-            return;
-        }
         if (_gameState.MakeMove(boardPos, out MoveInfo moveInfo))
         {
             StartCoroutine(OnMoveMade(moveInfo));
@@ -76,11 +71,9 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator OnMoveMade(MoveInfo moveInfo)
     {
-        _canMove = false;
         HideLegalMoves();
         yield return ShowMove(moveInfo);
         ShowLegalMoves();
-        _canMove = true;
     }
 
     private PlayerPosition SceneToBoard(Vector3 scenePos)
