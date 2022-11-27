@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
     private Dictionary<PlayerEnum, Disc> discPrefabs = new Dictionary<PlayerEnum, Disc>();
     private GameState _gameState = new GameState();
     private Disc[,] _discs = new Disc[8, 8];
+    private bool _canMove = true;
     void Start()
     {
         discPrefabs[PlayerEnum.Black] = discBlackUp;
@@ -24,7 +25,41 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+
+            if (Physics.Raycast(ray, out RaycastHit hitInfo, 100f, boardLayer))
+            {
+                Vector3 impact = hitInfo.point;
+                PlayerPosition boardPos = SceneToBoard(impact);
+                OnBoardClicked(boardPos);
+            }
+        }
+    }
+
+    private void OnBoardClicked(PlayerPosition boardPos)
+    {
+        if (!_canMove)
+        {
+            return;
+        }
+        if (_gameState.MakeMove(boardPos, out MoveInfo moveInfo))
+        {
+            StartCoroutine(OnMoveMade(moveInfo));
+        }
+    }
+
+    private IEnumerator OnMoveMade(MoveInfo moveInfo)
+    {
+        _canMove = false;
+        yield return ShowMove(moveInfo);
+        _canMove = true;
     }
 
     private PlayerPosition SceneToBoard(Vector3 scenePos)
@@ -52,5 +87,21 @@ public class GameManager : MonoBehaviour
             PlayerEnum player = _gameState.Board[boardPos.Row, boardPos.Col];
             SpawnDiscs(discPrefabs[player], boardPos);
         }
+    }
+
+    private void FlipDiscs(List<PlayerPosition> positions)
+    {
+        foreach (var position in positions)
+        {
+            _discs[position.Row, position.Col].Flip();
+        }
+    }
+
+    private IEnumerator ShowMove(MoveInfo moveInfo)
+    {
+        SpawnDiscs(discPrefabs[moveInfo.Player], moveInfo.Position);
+        yield return new WaitForSeconds(0.33f);
+        FlipDiscs(moveInfo.Taken);
+        yield return new WaitForSeconds(0.83f);
     }
 }
