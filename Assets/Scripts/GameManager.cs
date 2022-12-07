@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Disc discBlackUp;
     [SerializeField] private Disc discWhiteUp;
     [SerializeField] private GameObject highlightPrefab;
+    [SerializeField] private UIManager uiManager;
 
     private Dictionary<PlayerEnum, Disc> discPrefabs = new Dictionary<PlayerEnum, Disc>();
     private GameState _gameState = new GameState();
@@ -22,6 +23,7 @@ public class GameManager : MonoBehaviour
         
         AddStartDiscs();
         ShowLegalMoves();
+        uiManager.SetPlayerText(_gameState.CurrentPlayer);
     }
 
     // Update is called once per frame
@@ -73,6 +75,7 @@ public class GameManager : MonoBehaviour
     {
         HideLegalMoves();
         yield return ShowMove(moveInfo);
+        uiManager.SetPlayerText(_gameState.CurrentPlayer);
         ShowLegalMoves();
     }
 
