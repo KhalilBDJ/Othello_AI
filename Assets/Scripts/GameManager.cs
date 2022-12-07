@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class GameManager : MonoBehaviour
 {
@@ -152,5 +153,33 @@ public class GameManager : MonoBehaviour
 
         yield return uiManager.AnimateTopText();
         yield return uiManager.ShowScoreText();
+        yield return new WaitForSeconds(0.5f);
+
+        yield return ShowCounting();
+    }
+
+    private IEnumerator ShowCounting()
+    {
+        int black = 0;
+        int white = 0;
+
+        foreach (PlayerPosition pos in _gameState.OccupiedPositions())
+        {
+            PlayerEnum player = _gameState.Board[pos.Row, pos.Col];
+
+            if (player == PlayerEnum.Black)
+            {
+                black++;
+                uiManager.SetBlackScoreText(black);
+            }
+            else
+            {
+                white++;
+                uiManager.SetWhiteScoreText(white);
+            }
+            
+            _discs[pos.Row, pos.Col].Twitch();
+            yield return new WaitForSeconds(0.05f);
+        }
     }
 }

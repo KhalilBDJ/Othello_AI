@@ -70,4 +70,14 @@ public class UIManager : MonoBehaviour
         yield return ScaleUp(blackScoreText.rectTransform);
         yield return ScaleUp(whiteScoreText.rectTransform);
     }
+
+    public void SetBlackScoreText(int score)
+    {
+        blackScoreText.text = $"<sprite name=DiscBlackUp> {score}";
+    }
+    
+    public void SetWhiteScoreText(int score)
+    {
+        whiteScoreText.text = $"<sprite name=DiscWhiteUp> {score}";
+    }
 }
