@@ -132,7 +132,7 @@ public class GameManager : MonoBehaviour
     {
         if (_gameState.GameOver)
         {
-            // Show Game Over
+            yield return ShowGameOver(_gameState.Winner);
             yield break;
         }
 
@@ -144,5 +144,13 @@ public class GameManager : MonoBehaviour
         }
         
         uiManager.SetPlayerText(currentPlayer);
+    }
+
+    private IEnumerator ShowGameOver(PlayerEnum winner)
+    {
+        uiManager.SetTopText("Personne peut jouer ah les bouffons");
+
+        yield return uiManager.AnimateTopText();
+        yield return uiManager.ShowScoreText();
     }
 }
