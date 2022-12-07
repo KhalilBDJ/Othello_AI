@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -156,6 +157,9 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
 
         yield return ShowCounting();
+        uiManager.SetWinnerText(winner);
+        yield return uiManager.ShowEndScreen();
+
     }
 
     private IEnumerator ShowCounting()
@@ -181,5 +185,17 @@ public class GameManager : MonoBehaviour
             _discs[pos.Row, pos.Col].Twitch();
             yield return new WaitForSeconds(0.05f);
         }
+    }
+
+    private IEnumerator RestartGame()
+    {
+        yield return uiManager.HideEndScreen();
+        Scene activeScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(activeScene.name);
+    }
+
+    public void OnPlayAgainClicked()
+    {
+        StartCoroutine(RestartGame());
     }
 }

@@ -80,4 +80,62 @@ public class UIManager : MonoBehaviour
     {
         whiteScoreText.text = $"<sprite name=DiscWhiteUp> {score}";
     }
+
+    private IEnumerator ShowOverlay()
+    {
+        blackOverlay.gameObject.SetActive(true);
+        blackOverlay.color = Color.clear;
+        blackOverlay.rectTransform.LeanAlpha(0.8f, 1);
+        yield return new WaitForSeconds(1);
+    }
+
+    private IEnumerator HideOverlay()
+    {
+        blackOverlay.rectTransform.LeanAlpha(0, 1);
+        yield return new WaitForSeconds(1);
+        blackOverlay.gameObject.SetActive(false);
+        
+    }
+
+    private IEnumerator MoveScoreDown()
+    {
+        blackScoreText.rectTransform.LeanMoveY(0, 0.5f);
+        whiteScoreText.rectTransform.LeanMoveY(0, 0.5f);
+        yield return new WaitForSeconds(0.5f);
+    }
+
+    public void SetWinnerText(PlayerEnum winner)
+    {
+        switch (winner)
+        {
+            case PlayerEnum.Black:
+                winnerText.text = "Le joueur noir a gangé (haha le blanc ce bouffon)";
+                break;
+            case PlayerEnum.White:
+                winnerText.text = "Le joueur blanc a gangé (haha le noirs ce bouffon)";
+                break;
+            case PlayerEnum.None:
+                winnerText.text = "Srx vous êtes trop nuls y'a égalité";
+                break;
+        }
+    }
+
+    public IEnumerator ShowEndScreen()
+    {
+        yield return ShowOverlay();
+        yield return MoveScoreDown();
+        yield return ScaleUp(winnerText.rectTransform);
+        yield return ScaleUp(playAgainButton);
+    }
+
+    public IEnumerator HideEndScreen()
+    {
+        StartCoroutine(ScaleDown(winnerText.rectTransform));
+        StartCoroutine(ScaleDown(blackScoreText.rectTransform));
+        StartCoroutine(ScaleDown(whiteScoreText.rectTransform));
+        StartCoroutine(ScaleDown(playAgainButton));
+
+        yield return new WaitForSeconds(0.5f);
+        yield return HideOverlay();
+    }
 }
