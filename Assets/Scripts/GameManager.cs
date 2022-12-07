@@ -75,7 +75,7 @@ public class GameManager : MonoBehaviour
     {
         HideLegalMoves();
         yield return ShowMove(moveInfo);
-        uiManager.SetPlayerText(_gameState.CurrentPlayer);
+        yield return ShowTurnOutcome(moveInfo);
         ShowLegalMoves();
     }
 
@@ -120,5 +120,29 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(0.33f);
         FlipDiscs(moveInfo.Taken);
         yield return new WaitForSeconds(0.83f);
+    }
+
+    private IEnumerator ShowTurnSkipped(PlayerEnum skippedPlayer)
+    {
+        uiManager.SetSkipText(skippedPlayer);
+        yield return uiManager.AnimateTopText();
+    }
+
+    private IEnumerator ShowTurnOutcome(MoveInfo moveInfo)
+    {
+        if (_gameState.GameOver)
+        {
+            // Show Game Over
+            yield break;
+        }
+
+        PlayerEnum currentPlayer = _gameState.CurrentPlayer;
+
+        if (currentPlayer == moveInfo.Player)
+        {
+            yield return ShowTurnSkipped(currentPlayer.Opponent());
+        }
+        
+        uiManager.SetPlayerText(currentPlayer);
     }
 }

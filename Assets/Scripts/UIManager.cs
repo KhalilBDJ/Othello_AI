@@ -25,4 +25,22 @@ public class UIManager : MonoBehaviour
             topText.text = "Au tour du joueur blanc <sprite name=DiscWhiteUp>";
         }
     }
+
+    public void SetSkipText(PlayerEnum skippedPlayer)
+    {
+        if (skippedPlayer == PlayerEnum.Black)
+        {
+            topText.text = "Eh les noirs ces gros bouffons ils peuvent plus jouer <sprite name=DiscBlackUp>";
+        }
+        else if (skippedPlayer == PlayerEnum.White)
+        {
+            topText.text = "Eh les blancs ces gros bouffons ils peuvent plus joeur <sprite name=DiscWhiteUp>";
+        }
+    }
+
+    public IEnumerator AnimateTopText()
+    {
+        topText.transform.LeanScale(Vector3.one * 1.2f, 0.25f).setLoopPingPong(4);
+        yield return new WaitForSeconds(2);
+    }
 }
