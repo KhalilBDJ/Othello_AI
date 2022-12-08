@@ -18,6 +18,9 @@ public class GameManager : MonoBehaviour
     private GameState _gameState = new GameState();
     private Disc[,] _discs = new Disc[8, 8];
     private List<GameObject> highlights = new List<GameObject>();
+    
+
+
     void Start()
     {
         discPrefabs[PlayerEnum.Black] = discBlackUp;
@@ -198,4 +201,10 @@ public class GameManager : MonoBehaviour
     {
         StartCoroutine(RestartGame());
     }
+
+    public int CountPlayerPositionalScore()
+    {
+        return 0;
+    }
+    
 }

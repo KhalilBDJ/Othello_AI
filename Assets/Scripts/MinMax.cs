@@ -4,9 +4,7 @@ using UnityEngine;
 
 public class MinMax : MonoBehaviour
 {
-    public int[,] board = new int[8,8];
-    
-    public void InitialiseEuristic()
+    public int[,] InitialiseEuristic(int[,] board)
     {
         // coins
         board[0, 0] = 500;
@@ -93,5 +91,9 @@ public class MinMax : MonoBehaviour
         board[2, 5] = 1;
         board[5, 2] = 1;
         board[5, 5] = 1;
+
+        return board;
     }
+
+    
 }

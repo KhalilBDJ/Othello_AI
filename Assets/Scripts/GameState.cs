@@ -7,6 +7,9 @@ public class GameState
     public const int Rows = 8; // Nombre de ligne
     public const int Cols = 8; // Nombre de colonne 
     
+    private MinMax _minMax = new MinMax();
+    private readonly int[,] _positionalBoard = new int[8, 8];
+    
     public PlayerEnum[,] Board { get; } // Un tableau à deux dimensions correspondant au plateau de jeu
     public Dictionary<PlayerEnum, int> DiscCount { get; } // Le nombre de pions que chaque joueur possède
     public PlayerEnum CurrentPlayer { get; private set; } // Le joueur actuellement en train de jouer
@@ -16,6 +19,7 @@ public class GameState
 	
     public GameState()
     {
+        _minMax.InitialiseEuristic(_positionalBoard);
         Board = new PlayerEnum[Rows, Cols]; // Initialisation du plateau
         Board[3, 3] = PlayerEnum.White; // La position des pions au début du jeu
         Board[3, 4] = PlayerEnum.Black;
