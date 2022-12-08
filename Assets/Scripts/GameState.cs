@@ -7,9 +7,11 @@ public class GameState
     public const int Rows = 8; // Nombre de ligne
     public const int Cols = 8; // Nombre de colonne 
     
-    private MinMax _minMax = new MinMax();
+    private MinMax _minMax;
     private readonly int[,] _positionalBoard = new int[8, 8];
-    
+
+    public Dictionary<PlayerEnum, int> positionalCount;
+
     public PlayerEnum[,] Board { get; } // Un tableau à deux dimensions correspondant au plateau de jeu
     public Dictionary<PlayerEnum, int> DiscCount { get; } // Le nombre de pions que chaque joueur possède
     public PlayerEnum CurrentPlayer { get; private set; } // Le joueur actuellement en train de jouer
@@ -19,17 +21,24 @@ public class GameState
 	
     public GameState()
     {
+        _minMax = new MinMax();
         _minMax.InitialiseEuristic(_positionalBoard);
         Board = new PlayerEnum[Rows, Cols]; // Initialisation du plateau
         Board[3, 3] = PlayerEnum.White; // La position des pions au début du jeu
         Board[3, 4] = PlayerEnum.Black;
         Board[4, 3] = PlayerEnum.Black;
         Board[4, 4] = PlayerEnum.White;
+        
 
         DiscCount = new Dictionary<PlayerEnum, int>() // Chaque joueur a deux pions sur le plateau au début
         {
             {PlayerEnum.Black, 2},
             {PlayerEnum.White, 2}
+        };
+        positionalCount = new Dictionary<PlayerEnum, int>()
+        {
+            {PlayerEnum.White, _positionalBoard[3, 3] + _positionalBoard[4, 4]},
+            {PlayerEnum.Black, _positionalBoard[4, 3] + _positionalBoard[3, 4]}
         };
 
         CurrentPlayer = PlayerEnum.Black; // Selon les règles, le premier joueur est le joueur possèdant les pions noirs
@@ -134,6 +143,7 @@ public class GameState
         UpdateDiscCounts(movePlayer, taken.Count);
         PassTurn();
         moveInfo = new MoveInfo {Player = movePlayer, Position = pos, Taken = taken}; // On initialise les infos du mouvement
+        UpdatePositionalCount(movePlayer, moveInfo);
         return true;
     }
 
@@ -150,6 +160,17 @@ public class GameState
     {
         DiscCount[player] += taken + 1; // on ajoute le nombre de pions pris plus le pion placé
         DiscCount[player.Opponent()] -= taken; // on retire le nombre de pion pris à l'adversaire
+
+    }
+
+    private void UpdatePositionalCount(PlayerEnum player, MoveInfo move)
+    {
+        positionalCount[player] += _positionalBoard[move.Position.Row, move.Position.Col];
+        foreach (var taken in move.Taken)
+        {
+            positionalCount[player] += _positionalBoard[taken.Row, taken.Col];
+            positionalCount[player.Opponent()] -= _positionalBoard[taken.Row, taken.Col];
+        }
     }
 
     private void ChangePlayer()
