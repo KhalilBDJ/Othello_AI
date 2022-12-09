@@ -104,10 +104,9 @@ public class MinMax
         return board;
     } // crée un tableau remplie de la représentation 1 de l'euristique positionnel 
 
-    public int makeAIMove( PlayerEnum player)
+    public int makeAIMove( PlayerEnum player, int depth)
     {
-        int depth = 3;
-        MoveInfo moveAI = new MoveInfo();
+        MoveInfo moveAI;
         Dictionary<PlayerPosition, List<PlayerPosition>> legalMoves = _gameState.FindAllLegalMoves(player);
         if (_gameState.CurrentPlayer == PlayerEnum.Black)
         {
@@ -124,9 +123,18 @@ public class MinMax
             
                 foreach (var move in legalMoves.Keys)
                 {
-                    score.Add(makeAIMove(player.Opponent()));
+                    _gameState.MakeMove(new PlayerPosition(move.Col, move.Row), out moveAI);
+                    score.Add(makeAIMove(player.Opponent(), depth +1));
+                    _gameState.RevertMove(moveAI);
                 }
             }
+
+            if (depth >= 2)
+            {
+                
+            }
+
+            
         }
         return 0;
     }
