@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameState
@@ -7,10 +9,12 @@ public class GameState
     public const int Rows = 8; // Nombre de ligne
     public const int Cols = 8; // Nombre de colonne 
     
-    private MinMax _minMax;
+    private MinMax _minMax = new MinMax();
     private readonly int[,] _positionalBoard = new int[8, 8];
 
-    public Dictionary<PlayerEnum, int> positionalCount;
+    public List<MoveInfo> previousMoves;
+
+    
 
     public PlayerEnum[,] Board { get; } // Un tableau à deux dimensions correspondant au plateau de jeu
     public Dictionary<PlayerEnum, int> DiscCount { get; } // Le nombre de pions que chaque joueur possède
@@ -21,8 +25,8 @@ public class GameState
 	
     public GameState()
     {
-        _minMax = new MinMax();
-        _minMax.InitialiseEuristic(_positionalBoard);
+        
+        previousMoves = new List<MoveInfo>();
         Board = new PlayerEnum[Rows, Cols]; // Initialisation du plateau
         Board[3, 3] = PlayerEnum.White; // La position des pions au début du jeu
         Board[3, 4] = PlayerEnum.Black;
@@ -35,14 +39,9 @@ public class GameState
             {PlayerEnum.Black, 2},
             {PlayerEnum.White, 2}
         };
-        positionalCount = new Dictionary<PlayerEnum, int>()
-        {
-            {PlayerEnum.White, _positionalBoard[3, 3] + _positionalBoard[4, 4]},
-            {PlayerEnum.Black, _positionalBoard[4, 3] + _positionalBoard[3, 4]}
-        };
 
         CurrentPlayer = PlayerEnum.Black; // Selon les règles, le premier joueur est le joueur possèdant les pions noirs
-        LegalMoves = FindLegalMoves(CurrentPlayer);
+        LegalMoves = FindAllLegalMoves(CurrentPlayer);
     }
 
     private bool IsInsideBoard(int r, int c)
@@ -93,7 +92,7 @@ public class GameState
 
         return taken;
     }
-
+    
 
     private bool IsMoveLegal(PlayerEnum player, PlayerPosition pos, out List<PlayerPosition> taken)
     {
@@ -107,7 +106,7 @@ public class GameState
         return taken.Count > 0;
     }
 
-    private Dictionary<PlayerPosition, List<PlayerPosition>> FindLegalMoves(PlayerEnum player)
+    public Dictionary<PlayerPosition, List<PlayerPosition>> FindAllLegalMoves(PlayerEnum player)
     {
         Dictionary<PlayerPosition, List<PlayerPosition>> legalMoves = new Dictionary<PlayerPosition, List<PlayerPosition>>(); // On crée un dictionnaire de mouvements légaux
 
@@ -126,26 +125,38 @@ public class GameState
         return legalMoves;
     }
 
-    public bool MakeMove(PlayerPosition pos, out MoveInfo moveInfo)
+    public MoveInfo MakeMove(PlayerPosition pos, out MoveInfo moveInfo)
     {
         if (!LegalMoves.ContainsKey(pos)) // Si la position à laquelle on veut placer le pion n'est pas une position valide, alors on retourne faux
         {
             moveInfo = null;
-            return false;
+            return null;
         }
         // Sinon, on récupère le joueur actuel
         PlayerEnum movePlayer = CurrentPlayer;
         List<PlayerPosition> taken = LegalMoves[pos]; // On récupère la liste des pions pris par ce mouvement
-
+        
+        
         Board[pos.Row, pos.Col] = movePlayer; // On déplace le joueur sur le plateau
         
         FlipDiscs(taken); 
         UpdateDiscCounts(movePlayer, taken.Count);
         PassTurn();
-        moveInfo = new MoveInfo {Player = movePlayer, Position = pos, Taken = taken}; // On initialise les infos du mouvement
-        UpdatePositionalCount(movePlayer, moveInfo);
-        return true;
+        moveInfo = new MoveInfo {Player = movePlayer, NewPosition = pos, Taken = taken}; // On initialise les infos du mouvement
+        _minMax.UpdatePositionalCount(movePlayer, moveInfo);
+        previousMoves.Add(moveInfo);
+        return moveInfo;
     }
+
+    public void RevertMove(MoveInfo previousMove)
+    {
+        FlipDiscs(previousMove.Taken);
+        Board[previousMove.NewPosition.Row, previousMove.NewPosition.Col] = PlayerEnum.None;
+        UpdateDiscCounts(CurrentPlayer, previousMove.Taken.Count());
+        _minMax.UpdatePositionalCount(CurrentPlayer, previousMove);
+    }
+    
+    
 
     private void FlipDiscs(List<PlayerPosition> positions)
     {
@@ -162,21 +173,12 @@ public class GameState
         DiscCount[player.Opponent()] -= taken; // on retire le nombre de pion pris à l'adversaire
 
     }
+    
 
-    private void UpdatePositionalCount(PlayerEnum player, MoveInfo move)
-    {
-        positionalCount[player] += _positionalBoard[move.Position.Row, move.Position.Col];
-        foreach (var taken in move.Taken)
-        {
-            positionalCount[player] += _positionalBoard[taken.Row, taken.Col];
-            positionalCount[player.Opponent()] -= _positionalBoard[taken.Row, taken.Col];
-        }
-    }
-
-    private void ChangePlayer()
+    public void ChangePlayer()
     {
         CurrentPlayer = CurrentPlayer.Opponent(); 
-        LegalMoves = FindLegalMoves(CurrentPlayer); // On change la liste des déplacements possibles
+        LegalMoves = FindAllLegalMoves(CurrentPlayer); // On change la liste des déplacements possibles
     }
 
     private PlayerEnum FindWinner()
@@ -225,4 +227,6 @@ public class GameState
             }
         }
     }
+    
+    
 }

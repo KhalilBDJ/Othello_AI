@@ -70,10 +70,17 @@ public class GameManager : MonoBehaviour
 
     private void OnBoardClicked(PlayerPosition boardPos)
     {
-        if (_gameState.MakeMove(boardPos, out MoveInfo moveInfo))
+        if (_gameState.MakeMove(boardPos, out MoveInfo moveInfo) != null)
         {
             StartCoroutine(OnMoveMade(moveInfo));
         }
+    }
+
+    public void OnReturnClicked()
+    {
+        _gameState.RevertMove(_gameState.previousMoves[_gameState.previousMoves.Count - 1]);
+        StartCoroutine(OnMoveMade(_gameState.previousMoves[_gameState.previousMoves.Count - 1]));
+        _gameState.ChangePlayer();
     }
 
     private IEnumerator OnMoveMade(MoveInfo moveInfo)
@@ -101,6 +108,8 @@ public class GameManager : MonoBehaviour
         Vector3 scenePos = BoardToScenePos(boardPos) + Vector3.up * 0.1f;
         _discs[boardPos.Row, boardPos.Col] = Instantiate(prefab, scenePos, Quaternion.identity);
     }
+    
+    
 
     private void AddStartDiscs()
     {
@@ -121,7 +130,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator ShowMove(MoveInfo moveInfo)
     {
-        SpawnDiscs(discPrefabs[moveInfo.Player], moveInfo.Position);
+        SpawnDiscs(discPrefabs[moveInfo.Player], moveInfo.NewPosition);
         yield return new WaitForSeconds(0.33f);
         FlipDiscs(moveInfo.Taken);
         yield return new WaitForSeconds(0.83f);
