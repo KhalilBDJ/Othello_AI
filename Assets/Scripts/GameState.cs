@@ -148,12 +148,14 @@ public class GameState
         return moveInfo;
     }
 
-    public void RevertMove(MoveInfo previousMove)
+    public PlayerPosition RevertMove(MoveInfo previousMove)
     {
+        PlayerPosition previousPosition = new PlayerPosition(previousMove.NewPosition.Row, previousMove.NewPosition.Col);
         FlipDiscs(previousMove.Taken);
         Board[previousMove.NewPosition.Row, previousMove.NewPosition.Col] = PlayerEnum.None;
         UpdateDiscCounts(CurrentPlayer, previousMove.Taken.Count());
         _minMax.UpdatePositionalCount(CurrentPlayer, previousMove);
+        return previousPosition;
     }
     
     

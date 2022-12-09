@@ -72,21 +72,22 @@ public class GameManager : MonoBehaviour
     {
         if (_gameState.MakeMove(boardPos, out MoveInfo moveInfo) != null)
         {
-            StartCoroutine(OnMoveMade(moveInfo));
+            StartCoroutine(OnMoveMade(moveInfo, false));
         }
     }
 
     public void OnReturnClicked()
     {
-        _gameState.RevertMove(_gameState.previousMoves[_gameState.previousMoves.Count - 1]);
-        StartCoroutine(OnMoveMade(_gameState.previousMoves[_gameState.previousMoves.Count - 1]));
+        PlayerPosition lastPosition=_gameState.RevertMove(_gameState.previousMoves[_gameState.previousMoves.Count - 1]);
+        StartCoroutine(OnMoveMade(_gameState.previousMoves[_gameState.previousMoves.Count - 1], true));
+        RemoveDiscs(discPrefabs[_gameState.CurrentPlayer.Opponent()], lastPosition);
         _gameState.ChangePlayer();
     }
 
-    private IEnumerator OnMoveMade(MoveInfo moveInfo)
+    private IEnumerator OnMoveMade(MoveInfo moveInfo, bool back)
     {
         HideLegalMoves();
-        yield return ShowMove(moveInfo);
+        yield return ShowMove(moveInfo, back);
         yield return ShowTurnOutcome(moveInfo);
         ShowLegalMoves();
     }
@@ -108,8 +109,22 @@ public class GameManager : MonoBehaviour
         Vector3 scenePos = BoardToScenePos(boardPos) + Vector3.up * 0.1f;
         _discs[boardPos.Row, boardPos.Col] = Instantiate(prefab, scenePos, Quaternion.identity);
     }
-    
-    
+
+    private void RemoveDiscs(Disc prefab, PlayerPosition boardPos)
+    {
+        Vector3 scenePos = BoardToScenePos(boardPos) + Vector3.up * 0.1f;
+        Collider[] colliders;
+        if((colliders = Physics.OverlapSphere(scenePos, 0.1f)).Length > 1){
+            foreach(var collider in colliders)
+            {
+                var go = collider.gameObject; //This is the game object you collided with
+                if (go.name == prefab.name + "(Clone)")
+                {
+                    Destroy(go);
+                }
+            }
+        }
+    }
 
     private void AddStartDiscs()
     {
@@ -128,12 +143,21 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private IEnumerator ShowMove(MoveInfo moveInfo)
+    private IEnumerator ShowMove(MoveInfo moveInfo, bool back)
     {
-        SpawnDiscs(discPrefabs[moveInfo.Player], moveInfo.NewPosition);
-        yield return new WaitForSeconds(0.33f);
-        FlipDiscs(moveInfo.Taken);
-        yield return new WaitForSeconds(0.83f);
+        if (back)
+        {
+            FlipDiscs(moveInfo.Taken);
+            yield return new WaitForSeconds(0.83f); 
+        }
+        else
+        {
+            SpawnDiscs(discPrefabs[moveInfo.Player], moveInfo.NewPosition);
+            yield return new WaitForSeconds(0.33f);
+            FlipDiscs(moveInfo.Taken);
+            yield return new WaitForSeconds(0.83f); 
+        }
+        
     }
 
     private IEnumerator ShowTurnSkipped(PlayerEnum skippedPlayer)
