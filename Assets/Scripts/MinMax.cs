@@ -110,6 +110,9 @@ public class MinMax
         Dictionary<PlayerPosition, List<PlayerPosition>> legalMoves = _gameState.FindAllLegalMoves(player);
         if (_gameState.CurrentPlayer == PlayerEnum.Black)
         {
+            
+            List<int> score = new List<int>();
+
             if (legalMoves == null)
             {
                 if (_gameState.GameOver)
@@ -119,12 +122,11 @@ public class MinMax
             }
             else
             {
-                List<int> score = new List<int>();
-            
+                
                 foreach (var move in legalMoves.Keys)
                 {
-                    _gameState.MakeMove(new PlayerPosition(move.Col, move.Row), out moveAI);
-                    score.Add(makeAIMove(player.Opponent(), depth +1));
+                    score.Add(_gameState.MakeMove(new PlayerPosition(move.Col, move.Row), out moveAI).euristicValue);
+                    makeAIMove(player.Opponent(), depth +1);
                     _gameState.RevertMove(moveAI);
                 }
             }
@@ -160,5 +162,5 @@ public class MinMax
         }
     }
 
-    
+
 }

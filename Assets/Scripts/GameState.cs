@@ -229,6 +229,38 @@ public class GameState
             }
         }
     }
+
+    public MoveInfo MinMax(int depth, int maxDepth, MoveInfo chosenMove, PlayerEnum currentPlayer)
+    {
+
+        List<MoveInfo> moves = new List<MoveInfo>();
+        MoveInfo currentMove;
+        if (depth == maxDepth ||LegalMoves == null)
+        {
+            return chosenMove;
+        }
+        else
+        {
+            foreach (var legalMove in FindAllLegalMoves(currentPlayer).Keys)
+            {
+                moves.Add(MakeMove(legalMove, out currentMove));
+                MinMax(depth + 1, maxDepth, currentMove, currentPlayer.Opponent());
+                //RevertMove(currentMove);
+            }
+        }
+
+        int bestScore = 0;
+        foreach (var move in moves)
+        {
+            if (move.euristicValue > bestScore)
+            {
+                bestScore = move.euristicValue;
+                chosenMove = move;
+            }
+        }
+
+        return chosenMove;
+    }
     
-    
+
 }

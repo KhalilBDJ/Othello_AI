@@ -50,6 +50,15 @@ public class GameManager : MonoBehaviour
                 OnBoardClicked(boardPos);
             }
         }
+        
+
+        if (_gameState.CurrentPlayer == PlayerEnum.Black)
+        {
+            if (Input.GetKeyDown(KeyCode.A))
+            {
+                StartCoroutine(ShowMove(_gameState.MinMax(1, 3, new MoveInfo(), _gameState.CurrentPlayer), false));
+            }
+        }
     }
 
     private void ShowLegalMoves()
