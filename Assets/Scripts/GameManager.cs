@@ -51,8 +51,16 @@ public class GameManager : MonoBehaviour
             }
         }
         
-
         if (_gameState.CurrentPlayer == PlayerEnum.Black)
+        {
+            if (_gameState.MakeMove(_gameState.MinMax(0,3, new MoveInfo()).NewPosition, out MoveInfo moveInfo) != null)
+                {
+                    StartCoroutine(OnMoveMade(moveInfo, false));
+                }
+        }
+        
+
+        if (_gameState.CurrentPlayer == PlayerEnum.White)
         {
             if (Input.GetKeyDown(KeyCode.A))
             {
@@ -60,7 +68,6 @@ public class GameManager : MonoBehaviour
                 {
                     StartCoroutine(OnMoveMade(moveInfo, false));
                 }
-                Debug.Log(_gameState.LegalMoves);
             }
         }
     }

@@ -240,10 +240,10 @@ public class GameState
     public MoveInfo MinMax(int depth, int maxDepth, MoveInfo chosenMove)
     {
 
-        int bestScore = 0;
+        int bestScore = -100000;
         List<MoveInfo> moves = new List<MoveInfo>();
         MoveInfo currentMove = chosenMove;
-        if (depth == maxDepth ||LegalMoves == null)
+        if (depth == maxDepth ||LegalMoves.Count == 0)
         {
             return chosenMove;
         }
@@ -251,21 +251,29 @@ public class GameState
         {
             foreach (var legalMove in LegalMoves.Keys)
             {
-                moves.Add(MakeMove(legalMove, out currentMove));
+                MakeMove(legalMove, out currentMove);
+                moves.Add(currentMove);
+                if (currentMove == null)
+                {
+                    Debug.Log(currentMove);
+                }
                 MinMax(depth + 1, maxDepth, currentMove);
                 RevertMove(currentMove);
             }
         }
 
-        
-        foreach (var move in moves)
+        if (moves != null)
         {
-            if (move.euristicValue > bestScore)
+            foreach (var move in moves)
             {
-                bestScore = move.euristicValue;
-                chosenMove = move;
+                if (move.euristicValue > bestScore)
+                {
+                    bestScore = move.euristicValue;
+                    chosenMove = move;
+                }
             }
         }
+       
 
         return chosenMove;
     }
