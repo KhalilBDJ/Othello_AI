@@ -125,9 +125,9 @@ public class MinMax
                 
                 foreach (var move in legalMoves.Keys)
                 {
-                    score.Add(_gameState.MakeMove(new PlayerPosition(move.Col, move.Row), out moveAI).euristicValue);
+                    //score.Add(_gameState.MakeMove(new PlayerPosition(move.Col, move.Row), out moveAI).euristicValue, false);
                     makeAIMove(player.Opponent(), depth +1);
-                    _gameState.RevertMove(moveAI);
+                    //_gameState.RevertMove(moveAI);
                 }
             }
 

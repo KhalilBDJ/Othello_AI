@@ -56,7 +56,11 @@ public class GameManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.A))
             {
-                StartCoroutine(ShowMove(_gameState.MinMax(1, 3, new MoveInfo(), _gameState.CurrentPlayer), false));
+                if (_gameState.MakeMove(_gameState.MinMax(0,3, new MoveInfo()).NewPosition, out MoveInfo moveInfo) != null)
+                {
+                    StartCoroutine(OnMoveMade(moveInfo, false));
+                }
+                Debug.Log(_gameState.LegalMoves);
             }
         }
     }

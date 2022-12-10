@@ -11,6 +11,7 @@ public class GameState
     
     private MinMax _minMax = new MinMax();
     private readonly int[,] _positionalBoard = new int[8, 8];
+    public Dictionary<PlayerEnum, int> positionalCount;
 
     public List<MoveInfo> previousMoves;
 
@@ -143,8 +144,12 @@ public class GameState
         UpdateDiscCounts(movePlayer, taken.Count);
         PassTurn();
         moveInfo = new MoveInfo {Player = movePlayer, NewPosition = pos, Taken = taken}; // On initialise les infos du mouvement
-        _minMax.UpdatePositionalCount(movePlayer, moveInfo);
+        UpdatePositionalCount(movePlayer, moveInfo);
         previousMoves.Add(moveInfo);
+        if (previousMoves != null)
+        {
+            moveInfo.OldMove = previousMoves[previousMoves.Count - 1];
+        }
         return moveInfo;
     }
 
@@ -153,8 +158,10 @@ public class GameState
         PlayerPosition previousPosition = new PlayerPosition(previousMove.NewPosition.Row, previousMove.NewPosition.Col);
         FlipDiscs(previousMove.Taken);
         Board[previousMove.NewPosition.Row, previousMove.NewPosition.Col] = PlayerEnum.None;
+        previousMoves.Remove(previousMove);
         UpdateDiscCounts(CurrentPlayer, previousMove.Taken.Count());
-        _minMax.UpdatePositionalCount(CurrentPlayer, previousMove);
+        UpdatePositionalCount(CurrentPlayer, previousMove);
+        ChangePlayer();
         return previousPosition;
     }
     
@@ -230,26 +237,27 @@ public class GameState
         }
     }
 
-    public MoveInfo MinMax(int depth, int maxDepth, MoveInfo chosenMove, PlayerEnum currentPlayer)
+    public MoveInfo MinMax(int depth, int maxDepth, MoveInfo chosenMove)
     {
 
+        int bestScore = 0;
         List<MoveInfo> moves = new List<MoveInfo>();
-        MoveInfo currentMove;
+        MoveInfo currentMove = chosenMove;
         if (depth == maxDepth ||LegalMoves == null)
         {
             return chosenMove;
         }
         else
         {
-            foreach (var legalMove in FindAllLegalMoves(currentPlayer).Keys)
+            foreach (var legalMove in LegalMoves.Keys)
             {
                 moves.Add(MakeMove(legalMove, out currentMove));
-                MinMax(depth + 1, maxDepth, currentMove, currentPlayer.Opponent());
-                //RevertMove(currentMove);
+                MinMax(depth + 1, maxDepth, currentMove);
+                RevertMove(currentMove);
             }
         }
 
-        int bestScore = 0;
+        
         foreach (var move in moves)
         {
             if (move.euristicValue > bestScore)
@@ -261,6 +269,122 @@ public class GameState
 
         return chosenMove;
     }
+    
+    public void InitializeEuristicValue()
+    {
+        InitialiseEuristic(_positionalBoard);
+        positionalCount = new Dictionary<PlayerEnum, int>()
+        {
+            {PlayerEnum.White, _positionalBoard[3, 3] + _positionalBoard[4, 4]},
+            {PlayerEnum.Black, _positionalBoard[4, 3] + _positionalBoard[3, 4]}
+        };
+        
+    }
+    public void UpdatePositionalCount(PlayerEnum player, MoveInfo move)
+    {
+        InitializeEuristicValue();
+        int takenCount = 0;
+        positionalCount[player] += _positionalBoard[move.NewPosition.Row, move.NewPosition.Col];
+        foreach (var taken in move.Taken)
+        {
+            takenCount += _positionalBoard[taken.Row, taken.Col];
+            positionalCount[player] += _positionalBoard[taken.Row, taken.Col];
+            positionalCount[player.Opponent()] -= _positionalBoard[taken.Row, taken.Col];
+        }
+
+        move.euristicValue = _positionalBoard[move.NewPosition.Row, move.NewPosition.Col] + takenCount;
+    }
+    
+    public int[,] InitialiseEuristic(int[,] board)
+    {
+        // coins
+        board[0, 0] = 500;
+        board[0, 7] = 500;
+        board[7, 0] = 500;
+        board[7, 7] = 500;
+        
+        // centre
+        board[3, 3] = 16;
+        board[3, 4] = 16;
+        board[4, 3] = 16;
+        board[4, 4] = 16;
+        
+        // arrêtes
+        board[0, 3] = 10;
+        board[0, 4] = 10;
+        board[0, 1] = -150;
+        board[0, 6] = -150;
+        board[0, 2] = 30;
+        board[0, 5] = 30;
+        
+        board[3, 7] = 10;
+        board[4, 7] = 10;
+        board[1, 7] = -150;
+        board[6, 7] = -150;
+        board[2, 7] = 30;
+        board[5, 7] = 30;
+        
+        board[7, 3] = 10;
+        board[7, 4] = 10;
+        board[7, 1] = -150;
+        board[7, 6] = -150;
+        board[7, 2] = 30;
+        board[7, 5] = 30;
+        
+        board[3, 0] = 10;
+        board[4, 0] = 10;
+        board[1, 0] = -150;
+        board[6, 0] = -150;
+        board[2, 0] = 30;
+        board[5, 0] = 30;
+        
+        // arrêtes intérieures 
+        
+        board[1, 3] = 0;
+        board[1, 4] = 0;
+        board[1, 2] = 0;
+        board[1, 5] = 0;
+        
+        board[3, 1] = 0;
+        board[4, 1] = 0;
+        board[2, 1] = 0;
+        board[5, 1] = 0;
+        
+        board[6, 3] = 0;
+        board[6, 4] = 0;
+        board[6, 2] = 0;
+        board[6, 5] = 0;
+        
+        board[3, 6] = 0;
+        board[4, 6] = 0;
+        board[2, 6] = 0;
+        board[5, 6] = 0;
+        
+        // coins intérieurs 1
+        board[1, 1] = -250;
+        board[1, 6] = -250;
+        board[6, 1] = -250;
+        board[6, 6] = -250;
+        
+        
+        // arrêtes intérieures 2
+        board[2, 3] = 2;
+        board[2, 4] = 2;
+        board[3, 5] = 2;
+        board[4, 5] = 2;
+        board[5, 3] = 2;
+        board[5, 4] = 2;
+        board[3, 2] = 2;
+        board[4, 2] = 2;
+        
+        // coins intérieurs 2
+        board[2, 2] = 1;
+        board[2, 5] = 1;
+        board[5, 2] = 1;
+        board[5, 5] = 1;
+
+        return board;
+    } // crée un tableau remplie de la représentation 1 de l'euristique positionnel 
     
 
 }
