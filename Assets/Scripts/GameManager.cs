@@ -56,7 +56,7 @@ public class GameManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.A))
             {
-                if (_gameState.MakeMove(_gameState.MinMax(0,3, new MoveInfo()).NewPosition, out MoveInfo moveInfo , true) != null)
+                if (_gameState.MakeMove(_gameState.MinMax(0,1, new MoveInfo()).NewPosition, out MoveInfo moveInfo , true) != null)
                 {
                     StartCoroutine(OnMoveMade(moveInfo, false));
                 }

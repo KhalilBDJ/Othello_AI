@@ -209,7 +209,7 @@ public class GameState
         return PlayerEnum.None; // Match nul
     }
 
-    private void PassTurn()
+    public void PassTurn()
     {
         ChangePlayer();
 
@@ -246,7 +246,7 @@ public class GameState
     {
 
         int bestScore = -100000;
-        List<MoveInfo> moves = new List<MoveInfo>();
+        Dictionary<MoveInfo, MoveInfo> moves = new Dictionary<MoveInfo, MoveInfo>();
         MoveInfo currentMove = chosenMove;
         if (depth == maxDepth ||LegalMoves.Count == 0)
         {
@@ -257,14 +257,14 @@ public class GameState
             foreach (var legalMove in FindAllLegalMoves(CurrentPlayer).Keys) 
             {
                 MakeMove(legalMove, out currentMove, true);
-                moves.Add(MinMax(depth + 1, maxDepth, currentMove));
+                moves.Add(MinMax(depth + 1, maxDepth, currentMove), currentMove);
                 RevertMove(currentMove);
             }
         }
 
         if (moves != null)
         {
-            foreach (var move in moves)
+            foreach (var move in moves.Keys)
             {
                 if (move.heuristicValue > bestScore)
                 {
@@ -274,11 +274,7 @@ public class GameState
             }
         }
 
-        if (depth == 0)
-        {
-            Debug.Log("yes");
-        }
-        return chosenMove;
+        return moves[chosenMove];
     }
     
     public void InitializeEuristicValue() // Permet d'initialiser les valeurs heuristiques pour chaque joueur
