@@ -252,23 +252,12 @@ public class GameState
         {
             return chosenMove;
         }
-        
-        /*else if (FindAllLegalMoves(CurrentPlayer).Keys.Count == 0 && depth == 0)
-        {
-            ChangePlayer();
-            return null;
-        }*/
         else
         {
             foreach (var legalMove in FindAllLegalMoves(CurrentPlayer).Keys) 
             {
                 MakeMove(legalMove, out currentMove, true);
-                moves.Add(currentMove);
-                if (currentMove == null)
-                {
-                    Debug.Log(currentMove);
-                }
-                MinMax(depth + 1, maxDepth, currentMove);
+                moves.Add(MinMax(depth + 1, maxDepth, currentMove));
                 RevertMove(currentMove);
             }
         }
@@ -283,6 +272,11 @@ public class GameState
                     chosenMove = move;
                 }
             }
+        }
+
+        if (depth == 0)
+        {
+            Debug.Log("yes");
         }
         return chosenMove;
     }
@@ -300,16 +294,10 @@ public class GameState
     public void UpdatePositionalCount(PlayerEnum player, MoveInfo move)
     {
         InitializeEuristicValue();
-        int takenCount = 0;
+        //int takenCount = 0;
         positionalCount[player] += _positionalBoard[move.NewPosition.Row, move.NewPosition.Col];
-        foreach (var taken in move.Taken)
-        {
-            takenCount += _positionalBoard[taken.Row, taken.Col];
-            positionalCount[player] += _positionalBoard[taken.Row, taken.Col];
-            positionalCount[player.Opponent()] -= _positionalBoard[taken.Row, taken.Col];
-        }
 
-        move.heuristicValue = _positionalBoard[move.NewPosition.Row, move.NewPosition.Col] + takenCount;
+        move.heuristicValue = _positionalBoard[move.NewPosition.Row, move.NewPosition.Col];
     }
     
     public int[,] InitialiseEuristic(int[,] board)
