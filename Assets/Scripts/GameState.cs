@@ -301,23 +301,55 @@ public class GameState
 
     public void UpdatePositionalCount(PlayerEnum player, MoveInfo move)
     {
-        //int takenCount = 0;
+        //Strat1(player, move);
+        //Strat2(player, move);
+        //Strat3(player, move);
+        Strat4(player, move);
+
+    }
+
+    private void Strat1(PlayerEnum player, MoveInfo move)
+    {
         positionalCount[player] += _positionalBoard[move.NewPosition.Row, move.NewPosition.Col]; //Première Stratégie
 
         move.heuristicValue = _positionalBoard[move.NewPosition.Row, move.NewPosition.Col];
-
-        /*move.heuristicValue = 1; // Deuxième stratégie
+    }
+    
+    private void Strat2(PlayerEnum player, MoveInfo move)
+    {
+        move.heuristicValue = 1; // Deuxième stratégie
         foreach (var pion in move.Taken)
         {
             move.heuristicValue += 1;
-        }*/
-
-        move.heuristicValue = FindAllLegalMoves(CurrentPlayer.Opponent()).Count; // troisième stratégie
-        if (_positionalBoard[move.NewPosition.Row, move.NewPosition.Col] == 500)
-        {
-            move.heuristicValue = -500;
         }
     }
+    
+    private void Strat3(PlayerEnum player, MoveInfo move)
+    {
+        move.heuristicValue = -FindAllLegalMoves(CurrentPlayer.Opponent()).Count; // troisième stratégie
+        if (_positionalBoard[move.NewPosition.Row, move.NewPosition.Col] == 500)
+        {
+            move.heuristicValue = 500;
+        }
+    }
+
+    private void Strat4(PlayerEnum player, MoveInfo move)
+    {
+        if (previousMoves.Count<23)
+        {
+            Strat1(player, move);
+        }
+        else if (previousMoves.Count>= 46)
+        {
+            Strat3(player, move);
+        }
+        else
+        {
+            Strat2(player, move);
+        }
+        
+    }
+    
 
     public int[,] InitialiseEuristic(int[,] board)
     {

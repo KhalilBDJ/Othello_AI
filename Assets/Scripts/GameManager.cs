@@ -231,7 +231,7 @@ public class GameManager : MonoBehaviour
     private IEnumerator ShowGameOver(PlayerEnum winner)
     {
         uiManager.SetTopText("Personne peut jouer ah les bouffons");
-
+        Debug.Log(_gameState.previousMoves.Count);
         yield return uiManager.AnimateTopText();
         yield return uiManager.ShowScoreText();
         yield return new WaitForSeconds(0.5f);
