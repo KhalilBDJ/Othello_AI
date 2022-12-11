@@ -19,9 +19,9 @@ public class GameState
 
     public PlayerEnum[,] Board { get; } // Un tableau à deux dimensions correspondant au plateau de jeu
     public Dictionary<PlayerEnum, int> DiscCount { get; } // Le nombre de pions que chaque joueur possède
-    public PlayerEnum CurrentPlayer { get; private set; } // Le joueur actuellement en train de jouer
-    public bool GameOver { get; private set; } // Permettant de déterminer si le jeu est finit ou non
-    public PlayerEnum Winner { get; private set; } // Quel joueur a gagné
+    public PlayerEnum CurrentPlayer { get; set; } // Le joueur actuellement en train de jouer
+    public bool GameOver { get; set; } // Permettant de déterminer si le jeu est finit ou non
+    public PlayerEnum Winner { get; set; } // Quel joueur a gagné
     public Dictionary<PlayerPosition, List<PlayerPosition>> LegalMoves { get; private set; } // Un ajout de pion et la liste des pions adverses que le pion va prendre
 	
     public GameState()
@@ -126,7 +126,7 @@ public class GameState
         return legalMoves;
     }
 
-    public MoveInfo MakeMove(PlayerPosition pos, out MoveInfo moveInfo)
+    public MoveInfo MakeMove(PlayerPosition pos, out MoveInfo moveInfo, bool isAi)
     {
         if (!LegalMoves.ContainsKey(pos)) // Si la position à laquelle on veut placer le pion n'est pas une position valide, alors on retourne faux
         {
@@ -142,10 +142,18 @@ public class GameState
         
         FlipDiscs(taken); 
         UpdateDiscCounts(movePlayer, taken.Count);
-        PassTurn();
         moveInfo = new MoveInfo {Player = movePlayer, NewPosition = pos, Taken = taken}; // On initialise les infos du mouvement
         UpdatePositionalCount(movePlayer, moveInfo);
         previousMoves.Add(moveInfo);
+        if (isAi)
+        {
+            ChangePlayer();
+            
+        }
+        else
+        {
+            PassTurn(); 
+        }
         if (previousMoves != null)
         {
             moveInfo.OldMove = previousMoves[previousMoves.Count - 1];
@@ -190,7 +198,7 @@ public class GameState
         LegalMoves = FindAllLegalMoves(CurrentPlayer); // On change la liste des déplacements possibles
     }
 
-    private PlayerEnum FindWinner()
+    public PlayerEnum FindWinner()
     {
         if (DiscCount[PlayerEnum.Black] > DiscCount[PlayerEnum.White])
         {
@@ -247,11 +255,17 @@ public class GameState
         {
             return chosenMove;
         }
+        
+        /*else if (FindAllLegalMoves(CurrentPlayer).Keys.Count == 0 && depth == 0)
+        {
+            ChangePlayer();
+            return null;
+        }*/
         else
         {
-            foreach (var legalMove in LegalMoves.Keys)
+            foreach (var legalMove in FindAllLegalMoves(CurrentPlayer).Keys) 
             {
-                MakeMove(legalMove, out currentMove);
+                MakeMove(legalMove, out currentMove, true);
                 moves.Add(currentMove);
                 if (currentMove == null)
                 {
@@ -273,8 +287,6 @@ public class GameState
                 }
             }
         }
-       
-
         return chosenMove;
     }
     

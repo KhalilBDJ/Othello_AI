@@ -50,21 +50,22 @@ public class GameManager : MonoBehaviour
                 OnBoardClicked(boardPos);
             }
         }
-        
-        if (_gameState.CurrentPlayer == PlayerEnum.Black)
-        {
-            if (_gameState.MakeMove(_gameState.MinMax(0,3, new MoveInfo()).NewPosition, out MoveInfo moveInfo) != null)
-                {
-                    StartCoroutine(OnMoveMade(moveInfo, false));
-                }
-        }
-        
+
 
         if (_gameState.CurrentPlayer == PlayerEnum.White)
         {
             if (Input.GetKeyDown(KeyCode.A))
             {
-                if (_gameState.MakeMove(_gameState.MinMax(0,3, new MoveInfo()).NewPosition, out MoveInfo moveInfo) != null)
+                if (_gameState.MakeMove(_gameState.MinMax(0,3, new MoveInfo()).NewPosition, out MoveInfo moveInfo , true) != null)
+                {
+                    StartCoroutine(OnMoveMade(moveInfo, false));
+                }
+            }
+        }if (_gameState.CurrentPlayer == PlayerEnum.Black)
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                if (_gameState.MakeMove(_gameState.MinMax(0,3, new MoveInfo()).NewPosition, out MoveInfo moveInfo, true) != null)
                 {
                     StartCoroutine(OnMoveMade(moveInfo, false));
                 }
@@ -90,7 +91,7 @@ public class GameManager : MonoBehaviour
 
     private void OnBoardClicked(PlayerPosition boardPos)
     {
-        if (_gameState.MakeMove(boardPos, out MoveInfo moveInfo) != null)
+        if (_gameState.MakeMove(boardPos, out MoveInfo moveInfo, false) != null)
         {
             StartCoroutine(OnMoveMade(moveInfo, false));
         }
@@ -188,6 +189,12 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator ShowTurnOutcome(MoveInfo moveInfo)
     {
+        if (_gameState.FindAllLegalMoves(_gameState.CurrentPlayer).Keys.Count == 0 && _gameState.FindAllLegalMoves(_gameState.CurrentPlayer.Opponent()).Keys.Count == 0) // Si aucun joueur ne peut jouer, alors on arrête le jeu
+        {
+            _gameState.CurrentPlayer = PlayerEnum.None;
+            _gameState.GameOver = true;
+            _gameState.Winner = _gameState.FindWinner();
+        }
         if (_gameState.GameOver)
         {
             yield return ShowGameOver(_gameState.Winner);
