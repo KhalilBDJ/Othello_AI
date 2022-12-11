@@ -9,14 +9,11 @@ public class GameState
     public const int Rows = 8; // Nombre de ligne
     public const int Cols = 8; // Nombre de colonne 
     
-    private MinMax _minMax = new MinMax();
-    private readonly int[,] _positionalBoard = new int[8, 8];
-    public Dictionary<PlayerEnum, int> positionalCount;
+    private readonly int[,] _positionalBoard = new int[8, 8]; // L'interprétation 1 du tableau de stratégies dans le 4.2.2 du cours
+    public Dictionary<PlayerEnum, int> positionalCount; // La valeur de chaque joueur selon le tableau positionel 
 
-    public List<MoveInfo> previousMoves;
-
+    public List<MoveInfo> previousMoves; // La liste des mouvements précédents
     
-
     public PlayerEnum[,] Board { get; } // Un tableau à deux dimensions correspondant au plateau de jeu
     public Dictionary<PlayerEnum, int> DiscCount { get; } // Le nombre de pions que chaque joueur possède
     public PlayerEnum CurrentPlayer { get; set; } // Le joueur actuellement en train de jouer
@@ -95,7 +92,7 @@ public class GameState
     }
     
 
-    private bool IsMoveLegal(PlayerEnum player, PlayerPosition pos, out List<PlayerPosition> taken)
+    private bool IsMoveLegal(PlayerEnum player, PlayerPosition pos, out List<PlayerPosition> taken) // Permet de vérifier si un mouvement est légal
     {
         if (Board[pos.Row, pos.Col] != PlayerEnum.None)
         {
@@ -147,7 +144,7 @@ public class GameState
         previousMoves.Add(moveInfo);
         if (isAi)
         {
-            ChangePlayer();
+            ChangePlayer(); //Si le mouvement est effectué par l'IA est qu'elle rencontre en profondeur aucun mouvement, elle changeait deux fois de joueur, d'où l'importance de cette condition
             
         }
         else
@@ -161,14 +158,14 @@ public class GameState
         return moveInfo;
     }
 
-    public PlayerPosition RevertMove(MoveInfo previousMove)
+    public PlayerPosition RevertMove(MoveInfo previousMove) // Permet d'annuler un mouvement passé en paramètre
     {
         PlayerPosition previousPosition = new PlayerPosition(previousMove.NewPosition.Row, previousMove.NewPosition.Col);
         FlipDiscs(previousMove.Taken);
         Board[previousMove.NewPosition.Row, previousMove.NewPosition.Col] = PlayerEnum.None;
         previousMoves.Remove(previousMove);
-        UpdateDiscCounts(CurrentPlayer, previousMove.Taken.Count());
-        UpdatePositionalCount(CurrentPlayer, previousMove);
+        UpdateDiscCounts(CurrentPlayer, previousMove.Taken.Count()); // On met à jour le nombre de pions pour chaque joueur
+        UpdatePositionalCount(CurrentPlayer, previousMove); // On met à jour les points d'heuristiques pour chaque joueur
         ChangePlayer();
         return previousPosition;
     }
@@ -280,9 +277,9 @@ public class GameState
         {
             foreach (var move in moves)
             {
-                if (move.euristicValue > bestScore)
+                if (move.heuristicValue > bestScore)
                 {
-                    bestScore = move.euristicValue;
+                    bestScore = move.heuristicValue;
                     chosenMove = move;
                 }
             }
@@ -290,7 +287,7 @@ public class GameState
         return chosenMove;
     }
     
-    public void InitializeEuristicValue()
+    public void InitializeEuristicValue() // Permet d'initialiser les valeurs heuristiques pour chaque joueur
     {
         InitialiseEuristic(_positionalBoard);
         positionalCount = new Dictionary<PlayerEnum, int>()
@@ -312,7 +309,7 @@ public class GameState
             positionalCount[player.Opponent()] -= _positionalBoard[taken.Row, taken.Col];
         }
 
-        move.euristicValue = _positionalBoard[move.NewPosition.Row, move.NewPosition.Col] + takenCount;
+        move.heuristicValue = _positionalBoard[move.NewPosition.Row, move.NewPosition.Col] + takenCount;
     }
     
     public int[,] InitialiseEuristic(int[,] board)

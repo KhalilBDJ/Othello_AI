@@ -8,5 +8,5 @@ public class MoveInfo
     public PlayerPosition NewPosition { get; set; }
     public MoveInfo OldMove { get; set; }
     public List<PlayerPosition> Taken { get; set; }
-    public int euristicValue { get; set; }
+    public int heuristicValue { get; set; }
 }
