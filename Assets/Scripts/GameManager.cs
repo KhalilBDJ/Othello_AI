@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        _gameState.InitializeEuristicValue();
         discPrefabs[PlayerEnum.Black] = discBlackUp;
         discPrefabs[PlayerEnum.White] = discWhiteUp;
         
@@ -56,18 +57,34 @@ public class GameManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.A))
             {
-                if (_gameState.MakeMove(_gameState.MinMax(0,1, new MoveInfo()).NewPosition, out MoveInfo moveInfo , true) != null)
+                if (_gameState.LegalMoves.Count == 0)
                 {
-                    StartCoroutine(OnMoveMade(moveInfo, false));
+                    _gameState.ChangePlayer();
                 }
+                if (_gameState.MinMax(0,3, new MoveInfo()) != null)
+                {
+                    if (_gameState.MakeMove(_gameState.MinMax(0,1, new MoveInfo()).NewPosition, out MoveInfo moveInfo , true) != null)
+                    {
+                        StartCoroutine(OnMoveMade(moveInfo, false));
+                    }
+                }
+
             }
         }if (_gameState.CurrentPlayer == PlayerEnum.Black)
         {
+            
             if (Input.GetKeyDown(KeyCode.E))
             {
-                if (_gameState.MakeMove(_gameState.MinMax(0,3, new MoveInfo()).NewPosition, out MoveInfo moveInfo, true) != null)
+                if (_gameState.LegalMoves.Count == 0)
                 {
-                    StartCoroutine(OnMoveMade(moveInfo, false));
+                    _gameState.ChangePlayer();
+                }
+                if (_gameState.MinMax(0,3, new MoveInfo()) != null)
+                {
+                    if (_gameState.MakeMove(_gameState.MinMax(0,3, new MoveInfo()).NewPosition, out MoveInfo moveInfo , true) != null)
+                    {
+                        StartCoroutine(OnMoveMade(moveInfo, false));
+                    }
                 }
             }
         }
