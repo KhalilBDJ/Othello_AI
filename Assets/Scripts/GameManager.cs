@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        _gameState.InitializeEuristicValue();
         discPrefabs[PlayerEnum.Black] = discBlackUp;
         discPrefabs[PlayerEnum.White] = discWhiteUp;
         
@@ -50,6 +51,43 @@ public class GameManager : MonoBehaviour
                 OnBoardClicked(boardPos);
             }
         }
+
+
+        if (_gameState.CurrentPlayer == PlayerEnum.White)
+        {
+            if (Input.GetKeyDown(KeyCode.A))
+            {
+                if (_gameState.LegalMoves.Count == 0)
+                {
+                    _gameState.ChangePlayer();
+                }
+                if (_gameState.MinMax(0,3, new MoveInfo()) != null)
+                {
+                    if (_gameState.MakeMove(_gameState.MinMax(0,1, new MoveInfo()).NewPosition, out MoveInfo moveInfo , true) != null)
+                    {
+                        StartCoroutine(OnMoveMade(moveInfo, false));
+                    }
+                }
+
+            }
+        }if (_gameState.CurrentPlayer == PlayerEnum.Black)
+        {
+            
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                if (_gameState.LegalMoves.Count == 0)
+                {
+                    _gameState.ChangePlayer();
+                }
+                if (_gameState.MinMax(0,3, new MoveInfo()) != null)
+                {
+                    if (_gameState.MakeMove(_gameState.MinMax(0,3, new MoveInfo()).NewPosition, out MoveInfo moveInfo , true) != null)
+                    {
+                        StartCoroutine(OnMoveMade(moveInfo, false));
+                    }
+                }
+            }
+        }
     }
 
     private void ShowLegalMoves()
@@ -70,16 +108,24 @@ public class GameManager : MonoBehaviour
 
     private void OnBoardClicked(PlayerPosition boardPos)
     {
-        if (_gameState.MakeMove(boardPos, out MoveInfo moveInfo))
+        if (_gameState.MakeMove(boardPos, out MoveInfo moveInfo, false) != null)
         {
-            StartCoroutine(OnMoveMade(moveInfo));
+            StartCoroutine(OnMoveMade(moveInfo, false));
         }
     }
 
-    private IEnumerator OnMoveMade(MoveInfo moveInfo)
+    public void OnReturnClicked()
+    {
+        PlayerPosition lastPosition=_gameState.RevertMove(_gameState.previousMoves[_gameState.previousMoves.Count - 1]);
+        StartCoroutine(OnMoveMade(_gameState.previousMoves[_gameState.previousMoves.Count - 1], true));
+        RemoveDiscs(discPrefabs[_gameState.CurrentPlayer.Opponent()], lastPosition);
+        _gameState.ChangePlayer();
+    }
+
+    private IEnumerator OnMoveMade(MoveInfo moveInfo, bool back)
     {
         HideLegalMoves();
-        yield return ShowMove(moveInfo);
+        yield return ShowMove(moveInfo, back);
         yield return ShowTurnOutcome(moveInfo);
         ShowLegalMoves();
     }
@@ -102,6 +148,22 @@ public class GameManager : MonoBehaviour
         _discs[boardPos.Row, boardPos.Col] = Instantiate(prefab, scenePos, Quaternion.identity);
     }
 
+    private void RemoveDiscs(Disc prefab, PlayerPosition boardPos)
+    {
+        Vector3 scenePos = BoardToScenePos(boardPos) + Vector3.up * 0.1f;
+        Collider[] colliders;
+        if((colliders = Physics.OverlapSphere(scenePos, 0.1f)).Length > 1){
+            foreach(var collider in colliders)
+            {
+                var go = collider.gameObject; //This is the game object you collided with
+                if (go.name == prefab.name + "(Clone)")
+                {
+                    Destroy(go);
+                }
+            }
+        }
+    }
+
     private void AddStartDiscs()
     {
         foreach (var boardPos in _gameState.OccupiedPositions())
@@ -119,12 +181,21 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private IEnumerator ShowMove(MoveInfo moveInfo)
+    private IEnumerator ShowMove(MoveInfo moveInfo, bool back)
     {
-        SpawnDiscs(discPrefabs[moveInfo.Player], moveInfo.Position);
-        yield return new WaitForSeconds(0.33f);
-        FlipDiscs(moveInfo.Taken);
-        yield return new WaitForSeconds(0.83f);
+        if (back)
+        {
+            FlipDiscs(moveInfo.Taken);
+            yield return new WaitForSeconds(0.83f); 
+        }
+        else
+        {
+            SpawnDiscs(discPrefabs[moveInfo.Player], moveInfo.NewPosition);
+            yield return new WaitForSeconds(0.33f);
+            FlipDiscs(moveInfo.Taken);
+            yield return new WaitForSeconds(0.83f); 
+        }
+        
     }
 
     private IEnumerator ShowTurnSkipped(PlayerEnum skippedPlayer)
@@ -135,6 +206,12 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator ShowTurnOutcome(MoveInfo moveInfo)
     {
+        if (_gameState.FindAllLegalMoves(_gameState.CurrentPlayer).Keys.Count == 0 && _gameState.FindAllLegalMoves(_gameState.CurrentPlayer.Opponent()).Keys.Count == 0) // Si aucun joueur ne peut jouer, alors on arrête le jeu
+        {
+            _gameState.CurrentPlayer = PlayerEnum.None;
+            _gameState.GameOver = true;
+            _gameState.Winner = _gameState.FindWinner();
+        }
         if (_gameState.GameOver)
         {
             yield return ShowGameOver(_gameState.Winner);
@@ -154,7 +231,7 @@ public class GameManager : MonoBehaviour
     private IEnumerator ShowGameOver(PlayerEnum winner)
     {
         uiManager.SetTopText("Personne peut jouer ah les bouffons");
-
+        Debug.Log(_gameState.previousMoves.Count);
         yield return uiManager.AnimateTopText();
         yield return uiManager.ShowScoreText();
         yield return new WaitForSeconds(0.5f);

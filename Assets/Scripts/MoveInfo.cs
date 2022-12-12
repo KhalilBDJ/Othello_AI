@@ -5,6 +5,8 @@ using UnityEngine;
 public class MoveInfo 
 {
     public PlayerEnum Player { get; set; }
-    public PlayerPosition Position { get; set; }
+    public PlayerPosition NewPosition { get; set; }
+    public MoveInfo OldMove { get; set; }
     public List<PlayerPosition> Taken { get; set; }
+    public int heuristicValue { get; set; }
 }
